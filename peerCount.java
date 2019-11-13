@@ -25,7 +25,8 @@ public class peerCount {
             
                     StringTokenizer itr = new StringTokenizer(value.toString());
                     while (itr.hasMoreTokens()) {
-                        word.set(itr.nextToken());
+                        //make each string a token to facilitate stripping away of first instance of peer
+                        word.set(itr.nextToken("\\r?\\n"));
                         context.write(word, one);
                     }
                 }
