@@ -18,24 +18,23 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 
-
-public class MutualFriends {
-	public static class Map extends MapReduceBase
+public class MutualPeerCounter {
+    public static class TokenizerMapper extends MapReduceBase
                 implements Mapper<LongWritable, Text, Text, Text>{
                 public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter)
                         throws IOException{
                         StringTokenizer tokenizer = new StringTokenizer(value.toString(), "\n");
                         String line = null;
                         String[] lineArray = null;
-                        String[] friendArray = null;
+                        String[] peerArray = null;
                         String[] tempArray = null;
                         while(tokenizer.hasMoreTokens()){
                                 line = tokenizer.nextToken();
                                 lineArray = line.split(" ", 2);
-                                friendArray = lineArray[1].split(" ");
+                                peerArray = lineArray[1].split(" ");
                                 tempArray = new String[2];
-                                for(int i = 0; i < friendArray.length; i++){
-                                        tempArray[0] = friendArray[i];
+                                for(int i = 0; i < peerArray.length; i++){
+                                        tempArray[0] = peerArray[i];
                                         tempArray[1] = lineArray[0];
                                         Arrays.sort(tempArray);
                                         output.collect(new Text(tempArray[0] + " " + tempArray[1]), new Text(lineArray[1]));
@@ -44,7 +43,7 @@ public class MutualFriends {
                 }
         }
 		
-	public static class Reduce extends MapReduceBase
+	public static class MutualPeerReducer extends MapReduceBase
 		implements Reducer<Text, Text, Text, Text>{
 		public void reduce(Text key, Iterator<Text> values,
 		OutputCollector<Text, Text> output, Reporter reporter) throws IOException{
@@ -56,10 +55,10 @@ public class MutualFriends {
 				String[] list1 = texts[0].toString().split(" ");
 				String[] list2 = texts[1].toString().split(" ");
 				List<String> list = new LinkedList<String>();
-				for(String friend1 : list1){
-						for(String friend2 : list2){
-								if(friend1.equals(friend2)){
-										list.add(friend1);
+				for(String peer1 : list1){
+						for(String peer2 : list2){
+								if(peer1.equals(peer2)){
+										list.add(peer1);
 								}
 						}
 				}
@@ -71,25 +70,20 @@ public class MutualFriends {
 				}
 				output.collect(key, new Text(sb.toString()));
 		}
+
 }
-		
-	public static void main(String[] args) throws Exception {
-		  	JobConf conf = new JobConf(MutualFriends.class);
-		  	conf.setJobName("Friend");
- 
-			conf.setMapperClass(Map.class);
-			conf.setReducerClass(Reduce.class);
- 
-			conf.setMapOutputKeyClass(Text.class);
-			conf.setMapOutputValueClass(Text.class);
- 
-			conf.setOutputKeyClass(Text.class);
-			conf.setOutputValueClass(Text.class);
- 
-			FileInputFormat.setInputPaths(conf, new Path(args[0]));
-			FileOutputFormat.setOutputPath(conf, new Path(args[1]));
- 
-			JobClient.runJob(conf);
-	}	
+public static void main(String[] args) throws Exception {
+JobConf conf = new JobConf(MutualPeerCounter.class);
+    conf.setJobName("Mutual Peers");
+    conf.setMapperClass(TokenizerMapper.class);
+    conf.setReducerClass(MutualPeerReducer.class);
+    conf.setMapOutputKeyClass(Text.class);
+    conf.setMapOutputValueClass(Text.class);
+    conf.setOutputKeyClass(Text.class);
+    conf.setOutputValueClass(Text.class);
+    FileInputFormat.setInputPaths(conf, new Path(args[0]));
+    FileOutputFormat.setOutputPath(conf, new Path(args[1]));
+    JobClient.runJob(conf);
+}	
 
 }
