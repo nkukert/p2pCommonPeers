@@ -47,13 +47,13 @@ public class MutualPeerCounter {
 		implements Reducer<Text, Text, Text, Text>{
 		public void reduce(Text key, Iterator<Text> values,
 		OutputCollector<Text, Text> output, Reporter reporter) throws IOException{
-				Text[] texts = new Text[2];
+				Text[] pairOfLists = new Text[2];
 				int index = 0;
 				while(values.hasNext()){
-						texts[index++] = new Text(values.next());
+						pairOfLists[index++] = new Text(values.next());
 				}
-				String[] list1 = texts[0].toString().split(" ");
-				String[] list2 = texts[1].toString().split(" ");
+				String[] list1 = pairOfLists[0].toString().split(" ");
+				String[] list2 = pairOfLists[1].toString().split(" ");
 				List<String> list = new LinkedList<String>();
 				for(String peer1 : list1){
 						for(String peer2 : list2){
